@@ -63,7 +63,7 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /var/local/dcm4chee-arc/wildfly:/opt/wildfly/standalone
-      - /pacs/dcm4chee-arc/storage:/storage
+      - /root/pacs-storage/storage:/storage
     networks:
       - pacs-net
 networks:
