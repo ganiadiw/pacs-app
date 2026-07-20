@@ -2,6 +2,7 @@ version: "3"
 services:
   ldap:
     image: dcm4che/slapd-dcm4chee:2.6.10-34.2
+    restart: unless-stopped
     logging:
       driver: json-file
       options:
@@ -18,6 +19,7 @@ services:
       - pacs-net
   db:
     image: dcm4che/postgres-dcm4chee:17.4-34
+    restart: unless-stopped
     logging:
       driver: json-file
       options:
@@ -36,6 +38,7 @@ services:
       - pacs-net
   arc:
     image: dcm4che/dcm4chee-arc-psql:5.34.2
+    restart: unless-stopped
     logging:
       driver: json-file
       options:
@@ -62,7 +65,6 @@ services:
       - db
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - /var/local/dcm4chee-arc/wildfly:/opt/wildfly/standalone
       - /root/pacs-storage/dcm4chee-arc/storage:/storage
     networks:
       - pacs-net

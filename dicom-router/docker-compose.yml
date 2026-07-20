@@ -29,3 +29,10 @@ services:
     volumes:
       # router.conf diletakkan satu folder dengan docker-compose.yml
       - ./router.conf:/app/router.conf
+
+    networks:
+      - pacs-net
+networks:
+  pacs-net:
+    external: true
+    name:  dcm4chee-basic_pacs-net
