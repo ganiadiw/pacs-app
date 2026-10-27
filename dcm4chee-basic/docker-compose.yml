@@ -92,7 +92,6 @@ services:
       - /root/pacs-storage/dcm4chee-arc/storage:/storage
     networks:
       - pacs-net
-
 networks:
   pacs-net:
     driver: bridge
