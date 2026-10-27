@@ -1,4 +1,4 @@
-version: "3"
+
 services:
   ldap:
     image: dcm4che/slapd-dcm4chee:2.6.10-34.2
@@ -15,8 +15,20 @@ services:
     volumes:
       - /var/local/dcm4chee-arc/ldap:/var/lib/openldap/openldap-data
       - /var/local/dcm4chee-arc/slapd.d:/etc/openldap/slapd.d
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          ldapsearch -x -LLL -H ldap://127.0.0.1
+          -b 'dicomDeviceName=dcm4chee-arc,cn=Devices,cn=DICOM Configuration,dc=dcm4che,dc=org'
+          -s base dn 2>/dev/null | grep -q 'dcm4chee-arc'
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
     networks:
       - pacs-net
+
   db:
     image: dcm4che/postgres-dcm4chee:17.4-34
     restart: unless-stopped
@@ -25,7 +37,7 @@ services:
       options:
         max-size: "10m"
     ports:
-     - "5432:5432"
+      - "5432:5432"
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -34,8 +46,17 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /var/local/dcm4chee-arc/db:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"'
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
     networks:
       - pacs-net
+
   arc:
     image: dcm4che/dcm4chee-arc-psql:5.34.2
     restart: unless-stopped
@@ -61,13 +82,17 @@ services:
       TZ: ${TZ}
       JAVA_OPTS: "-Xms1g -Xmx4g"
     depends_on:
-      - ldap
-      - db
+      ldap:
+        condition: service_healthy
+      db:
+        condition: service_healthy
     volumes:
       - /etc/localtime:/etc/localtime:ro
+      - /var/local/dcm4chee-arc/wildfly:/opt/wildfly/standalone
       - /root/pacs-storage/dcm4chee-arc/storage:/storage
     networks:
       - pacs-net
+
 networks:
   pacs-net:
     driver: bridge
